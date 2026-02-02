@@ -3,9 +3,11 @@ import { Copy, Check, ArrowUpRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { CopyCode } from './ui/copy-code-button';
 import { Magnetic } from './ui/magnetic';
+import { RegistrationModal } from './RegistrationModal';
 
 export const Hero: React.FC = () => {
   const [copied, setCopied] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const email = "ibrakhimmmmm@gmail.com";
 
   const handleCopy = () => {
@@ -87,14 +89,22 @@ export const Hero: React.FC = () => {
         {/* Bottom CTA */}
         <div className="relative p-10 w-full flex justify-center pb-12 md:pb-16 z-10">
           <Magnetic intensity={0.2} springOptions={{ stiffness: 26.7, damping: 5, mass: 0.5 }}>
-            <button className="group flex items-center gap-3 bg-brand text-white px-8 py-4 rounded-full hover:bg-brand-accent transition-all duration-300 shadow-lg hover:shadow-brand-accent/25 active:scale-95">
-              <span className="text-base font-body font-medium">Latest Shots</span>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="group flex items-center gap-3 bg-brand text-white px-8 py-4 rounded-full hover:bg-brand-accent transition-all duration-300 shadow-lg hover:shadow-brand-accent/25 active:scale-95"
+            >
+              <span className="text-base font-body font-medium">Вступить</span>
               <ArrowUpRight size={18} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
             </button>
           </Magnetic>
         </div>
 
       </motion.div>
+
+      <RegistrationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </section>
   );
 };
