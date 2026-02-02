@@ -6,6 +6,9 @@
   "engines": {
     "node": ">=20"
   },
+  "overrides": {
+    "@rolldown/pluginutils": "1.0.0-rc.1"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
