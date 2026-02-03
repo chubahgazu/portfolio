@@ -11,7 +11,7 @@ export const Footer: React.FC = () => {
       {/* Main Content Removed */}
 
       {/* Bottom Footer Info */}
-      <footer className="w-full max-w-[1400px] px-4 md:px-6 flex flex-col md:flex-row items-center justify-between text-sm text-text-secondary mt-32 gap-6 z-10">
+      <footer className="w-full max-w-[1400px] px-4 md:px-6 flex flex-col md:flex-row items-center justify-between text-sm text-text-secondary mt-16 md:mt-32 gap-6 z-10 pb-8 md:pb-0">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-brand rounded-full flex items-center justify-center shadow-md">
             <span className="text-white font-bold font-heading text-xs">IM</span>

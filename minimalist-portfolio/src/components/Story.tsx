@@ -126,7 +126,7 @@ export const Story: React.FC = () => {
   };
 
   return (
-    <section id="story" className="w-full py-24 md:py-40 relative z-10 overflow-hidden">
+    <section id="story" className="w-full py-16 md:py-40 relative z-10 overflow-hidden">
       <FloatingIcons />
 
       {/* Intro Heading */}
@@ -151,21 +151,21 @@ export const Story: React.FC = () => {
         </motion.p>
       </div>
 
-      <div className="text-xl md:text-3xl font-medium leading-[1.5] tracking-tight text-text-primary relative z-10">
+      <div className="text-lg md:text-3xl font-medium leading-[1.6] md:leading-[1.5] tracking-tight text-text-primary relative z-10">
 
         {/* Hero-block Content */}
         <ScrollParagraph className="text-center">
-          <p className="mb-8">
+          <p className="mb-6 md:mb-8">
             Я работаю с нейросетями<br />
             не потому что это модно.<br />
             <span className="text-text-primary font-bold">А потому что это работает.</span>
           </p>
-          <p className="text-lg md:text-xl text-text-secondary mb-8">
+          <p className="text-base md:text-xl text-text-secondary mb-6 md:mb-8">
             С 2023 года.<br />
             От первых диалогов с ChatGPT 3.5<br />
             до реальных продуктов и автоматизаций.
           </p>
-          <p className="text-lg md:text-xl text-text-secondary mb-12">
+          <p className="text-base md:text-xl text-text-secondary mb-8 md:mb-12">
             Без магии.<br />
             Без инфо-шума.<br />
             Через понимание и действие.
