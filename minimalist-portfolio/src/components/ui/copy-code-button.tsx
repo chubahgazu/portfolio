@@ -92,7 +92,7 @@ export function CopyCode({ code = "hello@minimalist.com", className }: CopyCodeP
                     zIndex: copied ? 0 : 20,
                 }}
             >
-                <span className="text-lg font-body text-text-secondary select-all whitespace-nowrap">
+                <span className="text-lg font-body text-text-secondary select-all whitespace-nowrap truncate min-w-0 flex-1">
                     {code}
                 </span>
                 <button

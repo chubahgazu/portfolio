@@ -32,15 +32,15 @@ export const Hero: React.FC = () => {
         <div className="relative flex flex-col md:flex-row justify-between items-start md:items-center p-5 md:p-10 w-full z-10 gap-4 md:gap-0">
 
           {/* Email Copy Block */}
-          <div className="flex items-center gap-3 self-start">
+          <div className="flex items-center gap-3 self-center md:self-start w-full md:w-auto justify-center md:justify-start">
             <CopyCode
               code="ibrakhimmmmm@gmail.com"
-              className="bg-white border border-brand-secondary/10 shadow-sm pl-2 pr-1 py-1 w-auto h-auto rounded-full gap-2"
+              className="bg-white border border-brand-secondary/10 shadow-sm pl-2 pr-1 py-1 w-full md:w-auto max-w-[320px] md:max-w-none h-auto rounded-full gap-2"
             />
           </div>
 
           {/* Social Links */}
-          <div className="flex items-center gap-4 md:gap-6 text-xs md:text-sm font-heading font-medium text-text-secondary self-end md:self-auto">
+          <div className="flex items-center gap-4 md:gap-6 text-xs md:text-sm font-heading font-medium text-text-secondary self-center md:self-auto w-full md:w-auto justify-center md:justify-end mt-2 md:mt-0">
             <a href="https://t.me/+zjzVXH5V3zZIMDMy" target="_blank" rel="noopener noreferrer" className="hover:text-brand-accent transition-colors">Telegram</a>
             <a href="https://youtube.com/@r1chag?si=bCRqQqI8W1DFEXAR" target="_blank" rel="noopener noreferrer" className="hover:text-brand-accent transition-colors">YouTube</a>
             <a href="https://www.instagram.com/r1chag?igsh=MTF3NWVxanNzeTFjZA%3D%3D&utm_source=qr" target="_blank" rel="noopener noreferrer" className="hover:text-brand-accent transition-colors">Instagram</a>
