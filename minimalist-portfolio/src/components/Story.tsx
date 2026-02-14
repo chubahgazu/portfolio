@@ -1,455 +1,291 @@
 import React, { useRef } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { ArrowDown, ArrowRight, ExternalLink } from 'lucide-react';
+import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
+import { ArrowDown, ArrowRight, Sparkles, Zap, Brain, Target, AlertTriangle, Lightbulb, CheckCircle } from 'lucide-react';
 
-interface ScrollParagraphProps {
-  children?: React.ReactNode;
-  className?: string;
-}
+// --- Components ---
 
-// A single paragraph component that handles its own fade-in based on scroll position
-const ScrollParagraph = ({ children, className = "" }: ScrollParagraphProps) => {
+const TimelineItem = ({
+  children,
+  index,
+  icon: Icon,
+  label
+}: {
+  children: React.ReactNode;
+  index: number;
+  icon?: React.ElementType;
+  label: string;
+}) => {
+  const isEven = index % 2 === 0;
   const elementRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: elementRef,
-    offset: ["start 0.9", "start 0.5"]
+    offset: ["start end", "center center"]
   });
 
-  const opacity = useTransform(scrollYProgress, [0, 1], [0.1, 1]);
-  const y = useTransform(scrollYProgress, [0, 1], [20, 0]);
-
-  return (
-    <motion.div
-      ref={elementRef}
-      style={{ opacity, y }}
-      className={`mb-24 md:mb-32 max-w-3xl mx-auto px-6 ${className}`}
-    >
-      {children}
-    </motion.div>
+  const opacity = useTransform(scrollYProgress, [0, 0.5], [0, 1]);
+  const x = useTransform(
+    scrollYProgress,
+    [0, 0.5],
+    [isEven ? -50 : 50, 0]
   );
-};
-
-const FloatingIcons = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start end", "end start"]
-  });
-
-  // Generate random icons
-  // We use stable random numbers to avoid re-renders on hydration
-  const icons = React.useMemo(() => {
-    return Array.from({ length: 25 }).map((_, i) => {
-      const isLeft = i % 2 === 0;
-      const emoji = Math.random() > 0.5 ? '🤖' : '📺';
-      return {
-        id: i,
-        emoji,
-        // Position: left side (0-15%) or right side (85-100%)
-        left: isLeft ? `${Math.random() * 10}%` : `${85 + Math.random() * 10}%`,
-        // Start Y position scattered through the section
-        top: `${(i / 25) * 100}%`,
-        // Random size - increased as requested (0.8 to 2.3)
-        scale: 0.8 + Math.random() * 1.5,
-        // Random rotation speed
-        rotateSpeed: (Math.random() - 0.5) * 360,
-        // Parallax speed factor (some move faster than others)
-        speed: 0.5 + Math.random() * 1.5,
-        // Delay for appearance
-        delay: Math.random() * 0.5
-      };
-    });
-  }, []);
-
-  const y = useTransform(scrollYProgress, [0, 1], [0, -200]);
+  const scale = useTransform(scrollYProgress, [0, 0.5], [0.8, 1]);
 
   return (
-    <div ref={containerRef} className="absolute inset-0 overflow-hidden pointer-events-none z-0 hidden md:block">
-      {icons.map((icon) => (
-        <FloatingIcon
-          key={icon.id}
-          {...icon}
-          parentY={y}
-        />
-      ))}
+    <div ref={elementRef} className={`relative flex items-center justify-between md:justify-center w-full mb-20 md:mb-32 ${isEven ? 'md:flex-row-reverse' : ''}`}>
+
+      {/* Center Line Marker */}
+      <div className="absolute left-6 md:left-1/2 w-4 h-4 bg-brand border-[3px] border-white rounded-full z-20 shadow-[0_0_0_4px_rgba(0,0,0,0.05)] transform -translate-x-1/2">
+        {Icon && (
+          <div className="absolute -top-3 -right-3 md:-right-8 md:-top-4 w-8 h-8 md:w-10 md:h-10 bg-white rounded-full flex items-center justify-center shadow-sm border border-gray-100 text-brand-accent">
+            <Icon size={18} />
+          </div>
+        )}
+      </div>
+
+      {/* Content Side */}
+      <motion.div
+        style={{ opacity, x, scale }}
+        className={`w-[calc(100%-60px)] ml-12 md:ml-0 md:w-[42%] bg-white p-8 rounded-2xl  border border-gray-100/50 shadow-sm relative group hover:border-gray-200 transition-colors duration-300`}
+      >
+        <span className="absolute -top-3 left-6 px-3 py-1 bg-brand text-white text-xs font-bold tracking-widest uppercase rounded-full shadow-sm">
+          {label}
+        </span>
+        {children}
+      </motion.div>
+
+      {/* Empty Side for layout balance on Desktop */}
+      <div className="hidden md:block w-[42%]" />
     </div>
   );
 };
 
-interface FloatingIconProps {
-  id: number;
-  emoji: string;
-  left: string;
-  top: string;
-  scale: number;
-  rotateSpeed: number;
-  speed: number;
-  delay: number;
-  parentY: any; // Using any for MotionValue to avoid deep type import issues, but we know it's a number motion value
-}
-
-const FloatingIcon = ({ emoji, left, top, scale, rotateSpeed, speed, parentY, delay }: FloatingIconProps) => {
-  // Parallax effect unique to this icon
-  // We combine the parent's scroll progress with individual speed factors
-  const y = useTransform(parentY, (latest: number) => latest * speed);
+const FloatingIcons = () => {
+  // ... (Keep existing implementation or simplify)
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: containerRef, offset: ["start end", "end start"] });
+  const y = useTransform(scrollYProgress, [0, 1], [0, -100]);
 
   return (
-    <motion.div
-      style={{
-        left,
-        top,
-        y,
-        scale,
-      }}
-      initial={{ opacity: 0, rotate: 0 }}
-      whileInView={{
-        opacity: [0, 0.6, 0.6, 0],
-        rotate: rotateSpeed
-      }}
-      transition={{
-        opacity: { duration: 1, delay },
-        rotate: { duration: 3, repeat: Infinity, ease: "linear" }
-      }}
-      className="absolute text-4xl select-none filter blur-[1px] opacity-60"
-    >
-      {emoji}
-    </motion.div>
-  );
+    <div ref={containerRef} className="absolute inset-0 overflow-hidden pointer-events-none z-0 hidden lg:block opacity-30">
+      {/* Simplified background elements */}
+      <motion.div style={{ y }} className="absolute top-[10%] left-[5%] text-6xl opacity-10 blur-[2px]">💡</motion.div>
+      <motion.div style={{ y: useTransform(scrollYProgress, [0, 1], [0, -200]) }} className="absolute top-[30%] right-[10%] text-6xl opacity-10 blur-[1px]">🧠</motion.div>
+      <motion.div style={{ y: useTransform(scrollYProgress, [0, 1], [0, -50]) }} className="absolute top-[60%] left-[10%] text-6xl opacity-10 blur-[3px]">🚀</motion.div>
+      <motion.div style={{ y: useTransform(scrollYProgress, [0, 1], [0, -150]) }} className="absolute top-[80%] right-[5%] text-6xl opacity-10 blur-[1px]">⚡️</motion.div>
+    </div>
+  )
 };
 
+
 export const Story: React.FC = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start 0.1", "end 0.9"]
+  });
+
+  const scaleY = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
+
   const scrollToStart = () => {
     const element = document.getElementById('story-start');
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+      const offset = 100;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
     }
   };
 
   return (
-    <section id="story" className="w-full py-16 md:py-40 relative z-10 overflow-hidden">
+    <section id="story" className="w-full py-20 md:py-32 relative z-10 overflow-hidden bg-bg-primary" ref={containerRef}>
       <FloatingIcons />
 
       {/* Intro Heading */}
-      <div className="h-[20vh] flex flex-col items-center justify-center mb-10 md:mb-20 relative z-10">
+      <div className="flex flex-col items-center justify-center mb-16 md:mb-32 relative z-10 text-center px-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+          className="mb-8 inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white border border-gray-100/50 shadow-sm text-brand text-sm font-medium"
+        >
+          <Sparkles size={16} className="text-brand-accent" />
+          <span>История развития</span>
+        </motion.div>
+
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
-          className="text-[15vw] md:text-[8vw] font-heading font-medium text-center tracking-tight text-brand/5 select-none leading-none"
+          className="text-5xl md:text-8xl font-heading font-medium tracking-tight text-brand leading-[0.9] mb-8"
         >
           Мой путь
         </motion.h2>
-        <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          viewport={{ once: true }}
-          className="text-lg md:text-2xl text-text-secondary font-medium -mt-4 md:-mt-8"
-        >
-          от интереса к действию
-        </motion.p>
-      </div>
 
-      <div className="text-lg md:text-3xl font-medium leading-[1.6] md:leading-[1.5] tracking-tight text-text-primary relative z-10">
+        <motion.div className="max-w-2xl mx-auto space-y-6">
+          <p className="text-xl md:text-3xl font-heading text-text-primary leading-tight">
+            Я работаю с нейросетями не потому что это модно. <br />
+            <span className="text-brand-accent">А потому что это работает.</span>
+          </p>
+          <p className="text-lg text-text-secondary font-body leading-relaxed">
+            С 2023 года. От первых диалогов с ChatGPT 3.5 до реальных продуктов.
+            Без магии. Без инфо-шума.
+          </p>
+        </motion.div>
 
-        {/* Hero-block Content */}
-        <ScrollParagraph className="text-center">
-          <p className="mb-6 md:mb-8">
-            Я работаю с нейросетями<br />
-            не потому что это модно.<br />
-            <span className="text-text-primary font-bold">А потому что это работает.</span>
-          </p>
-          <p className="text-base md:text-xl text-text-secondary mb-6 md:mb-8">
-            С 2023 года.<br />
-            От первых диалогов с ChatGPT 3.5<br />
-            до реальных продуктов и автоматизаций.
-          </p>
-          <p className="text-base md:text-xl text-text-secondary mb-8 md:mb-12">
-            Без магии.<br />
-            Без инфо-шума.<br />
-            Через понимание и действие.
-          </p>
-
+        <div className="mt-12">
           <button
             onClick={scrollToStart}
-            className="inline-flex items-center gap-2 text-sm md:text-base px-6 py-3 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors text-text-primary"
+            className="group p-4 rounded-full bg-white border border-gray-200 hover:border-brand-accent transition-colors shadow-sm"
           >
-            Посмотреть путь
-            <ArrowDown size={16} />
+            <ArrowDown size={20} className="text-gray-400 group-hover:text-brand-accent animate-bounce" />
           </button>
-        </ScrollParagraph>
+        </div>
+      </div>
 
-        <div id="story-start" className="w-full h-1 bg-gradient-to-r from-transparent via-gray-200 to-transparent mb-32 opacity-50" />
+      <div id="story-start" className="w-full max-w-[1000px] mx-auto px-4 md:px-6 relative z-10">
 
-        {/* Block 1 */}
-        <ScrollParagraph>
-          <span className="text-sm font-bold tracking-widest uppercase text-brand-accent mb-2 block">Блок 1. Начало</span>
-          <h3 className="text-3xl md:text-4xl font-heading font-bold mb-6">Любопытство</h3>
-          <p className="mb-6">
-            Я в нейросетях с момента появления ChatGPT 3.5.
-            Тогда это не было рынком.
-            Не было индустрией.
-          </p>
-          <p className="text-text-secondary mb-6">
-            Это был сырой инструмент.
-            Я просто общался с ИИ.
-            Проверял границы.
-            Смотрел, как он думает.
-          </p>
-          <p className="text-text-secondary border-l-2 border-gray-200 pl-4">
-            Без курсов.
-            Без хайпа.
-            Без обещаний быстрых денег.
-          </p>
-          <p className="mt-6 font-medium">
-            Любопытство — искра.<br />
-            Огонь начинается позже.
-          </p>
-        </ScrollParagraph>
+        {/* THE LINE */}
+        <div className="absolute left-6 md:left-1/2 top-0 bottom-0 w-[2px] bg-gray-100 transform md:-translate-x-1/2">
+          <motion.div
+            style={{ scaleY, transformOrigin: "top" }}
+            className="w-full h-full bg-gradient-to-b from-brand-accent via-purple-500 to-brand-accent"
+          />
+        </div>
 
-        {/* Block 2 */}
-        <ScrollParagraph>
-          <span className="text-sm font-bold tracking-widest uppercase text-brand-accent mb-2 block">Блок 2. Направление</span>
-          <h3 className="text-3xl md:text-4xl font-heading font-bold mb-6">Понимание</h3>
-          <p className="mb-6">
-            Потом появился Midjourney.
-            Затем — другие инструменты.
+        {/* 1. Curiosity */}
+        <TimelineItem index={0} label="Начало" icon={Lightbulb}>
+          <h3 className="text-2xl font-heading font-bold mb-4">Любопытство</h3>
+          <p className="text-text-secondary mb-4 leading-relaxed">
+            Я в нейросетях с момента появления ChatGPT 3.5. Тогда это не было индустрией.
+            Это был сырой инструмент. Я просто общался с ИИ, проверял границы, смотрел, как он думает.
           </p>
-          <p className="mb-6">
-            И стало ясно:<br />
-            <span className="bg-yellow-100 px-1 rounded">нейросети — это новый язык.</span><br />
-            И рынок будет говорить на нём.
-          </p>
-          <p className="text-text-secondary">
-            Пока одни спорили
-            «пузырь это или нет»,
-            я учился думать через ИИ,
-            а не просто нажимать кнопки.
-          </p>
-        </ScrollParagraph>
+          <div className="text-sm font-medium text-brand-secondary/70 border-l-2 border-brand-accent/20 pl-4 py-1">
+            «Без курсов. Без хайпа. Без обещаний быстрых денег.»
+          </div>
+        </TimelineItem>
 
-        {/* Block 3 */}
-        <ScrollParagraph>
-          <span className="text-sm font-bold tracking-widest uppercase text-brand-accent mb-2 block">Блок 3. Теория</span>
-          <h3 className="text-3xl md:text-4xl font-heading font-bold mb-6">Знаний было много</h3>
-          <p className="mb-6 text-xl">За это время я прошёл:</p>
-          <ul className="list-none space-y-2 text-text-secondary text-lg md:text-xl mb-8">
-            <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-accent/50" /> 2 курса по Instagram и Reels</li>
-            <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-accent/50" /> YouTube Shorts</li>
-            <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-accent/50" /> Wildberries</li>
-            <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-accent/50" /> P2P</li>
-          </ul>
-          <p className="text-text-secondary mb-6">
-            Стратегии. Воронки. Алгоритмы. Психология внимания.
+        {/* 2. Understanding */}
+        <TimelineItem index={1} label="Осознание" icon={Brain}>
+          <h3 className="text-2xl font-heading font-bold mb-4">Новый язык</h3>
+          <p className="text-text-secondary mb-4 leading-relaxed">
+            Появился Midjourney. Затем — другие инструменты. Стало ясно: нейросети — это новый язык, и рынок будет говорить на нём.
           </p>
-          <div className="bg-gray-50 p-6 rounded-xl border border-gray-100">
-            <p className="font-medium text-text-primary">
-              Информации — много.<br />
-              <span className="text-red-500">Результатов — нет, если не действуешь.</span>
+          <p className="p-4 bg-gray-50 rounded-xl text-sm font-medium text-text-primary">
+            Пока одни спорили «пузырь это или нет», я учился думать через ИИ, а не просто нажимать кнопки.
+          </p>
+        </TimelineItem>
+
+        {/* 3. Theory (Mistakes) */}
+        <TimelineItem index={2} label="Опыт" icon={AlertTriangle}>
+          <h3 className="text-2xl font-heading font-bold mb-4">Информационный шум</h3>
+          <p className="mb-4 text-text-secondary">
+            Я изучил всё: Instagram, Reels, YouTube Shorts, WB, P2P.
+            Стратегии, воронки, алгоритмы.
+          </p>
+          <p className="text-lg font-medium text-red-500 mb-2">
+            Но информации много, а результатов — нет.
+          </p>
+          <p className="text-sm text-text-secondary">
+            Знание без действия — балласт. Действие без знания — хаос.
+          </p>
+        </TimelineItem>
+
+        {/* 4. Approach */}
+        <TimelineItem index={3} label="Метод" icon={Target}>
+          <h3 className="text-2xl font-heading font-bold mb-4">Как я работаю</h3>
+          <p className="mb-6 text-text-secondary">
+            Я не продаю волшебные кнопки. Я работаю на пересечении:
+          </p>
+          <div className="flex flex-wrap gap-2 mb-6">
+            {['Нейросети', 'Контент', 'Маркетинг', 'Практика'].map((tag) => (
+              <span key={tag} className="px-3 py-1 bg-gray-100 rounded-full text-xs md:text-sm font-medium text-gray-600">
+                {tag}
+              </span>
+            ))}
+          </div>
+          <p className="font-bold text-lg">
+            Мой фокус — результат. <span className="text-gray-400 font-normal">Не имитация движения.</span>
+          </p>
+        </TimelineItem>
+
+        {/* 5. Proof */}
+        <TimelineItem index={4} label="Факты" icon={CheckCircle}>
+          <h3 className="text-2xl font-heading font-bold mb-4">Не слова</h3>
+          <div className="mb-6">
+            <p className="font-medium mb-2">Этот сайт создан с AI.</p>
+            <p className="text-sm text-text-secondary">Как и ещё 3 сайта, 3 чат-бота и 3 автоматизации.</p>
+          </div>
+          <div className="bg-brand text-white p-5 rounded-xl shadow-lg shadow-brand/10">
+            <p className="text-sm italic opacity-90">
+              «Экспертность без артефактов — это шум. Навык должен быть виден.»
             </p>
           </div>
-        </ScrollParagraph>
+        </TimelineItem>
 
-        {/* Block 4 */}
-        <ScrollParagraph>
-          <span className="text-sm font-bold tracking-widest uppercase text-brand-accent mb-2 block">Блок 4. Осознание</span>
-          <h3 className="text-3xl md:text-4xl font-heading font-bold mb-6">Неприятная правда</h3>
-          <p className="mb-6">
-            Можно пройти десятки курсов.
-            Можно знать больше всех.
+        {/* 6. Motivation / Error */}
+        <TimelineItem index={5} label="Инсайт" icon={Zap}>
+          <h3 className="text-2xl font-heading font-bold mb-4">Главная ошибка</h3>
+          <p className="text-text-secondary mb-4 leading-relaxed">
+            Раньше я думал: нейросети «и так всё понимают». Что нужно просто дать команду.
           </p>
-          <p className="mb-6 text-xl font-bold">
-            Но если ты не действуешь —<br />
-            ты никто на рынке.
-          </p>
-          <p className="text-text-secondary mb-6">
-            Знание без действия — балласт.<br />
-            Действие без знания — хаос.
-          </p>
-          <p className="bg-brand text-white inline-block px-3 py-1 rounded-lg transform -rotate-1">
-            Результат даёт только связка.
-          </p>
-          <p className="mt-8 text-text-secondary text-lg">
-            Сегодня каждый что-то знает.<br />
-            Но единицы воплощают.
-          </p>
-        </ScrollParagraph>
+          <p className="text-brand-accent font-bold mb-4 text-lg">Это не так.</p>
+          <ul className="space-y-2 text-sm text-text-secondary list-disc list-inside">
+            <li>ИИ не слышит тебя так, как ты думаешь</li>
+            <li>Не понимает контекст автоматически</li>
+            <li>Не читает твои мысли</li>
+          </ul>
+        </TimelineItem>
 
-        {/* Block 5 */}
-        <ScrollParagraph>
-          <span className="text-sm font-bold tracking-widest uppercase text-brand-accent mb-2 block">Блок 5. Подход</span>
-          <h3 className="text-3xl md:text-4xl font-heading font-bold mb-6">Как я работаю</h3>
+        {/* 7. Value */}
+        <TimelineItem index={6} label="Польза" icon={Sparkles}>
+          <h3 className="text-2xl font-heading font-bold mb-4">Почему бесплатно?</h3>
           <p className="mb-6 text-text-secondary">
-            Я не продаю волшебные кнопки.
-            Я не обещаю лёгких денег.
+            Я устал видеть, как новичкам продают сотни промтов. Здесь я дам тебе бесплатные уроки про <span className="text-brand-accent font-bold">понимание</span>.
           </p>
-          <p className="mb-6">Я работаю на пересечении:</p>
-          <div className="flex flex-wrap gap-3 mb-8">
-            <span className="px-4 py-2 bg-gray-100 rounded-full text-sm md:text-base">нейросетей</span>
-            <span className="px-4 py-2 bg-gray-100 rounded-full text-sm md:text-base">контента</span>
-            <span className="px-4 py-2 bg-gray-100 rounded-full text-sm md:text-base">маркетингового мышления</span>
-            <span className="px-4 py-2 bg-gray-100 rounded-full text-sm md:text-base">реального применения</span>
-          </div>
-          <p className="font-bold text-xl">
-            Мой фокус — результат.<br />
-            <span className="text-text-secondary font-normal">Не имитация движения.</span>
-          </p>
-        </ScrollParagraph>
-
-        {/* Block 6 */}
-        <ScrollParagraph>
-          <span className="text-sm font-bold tracking-widest uppercase text-brand-accent mb-2 block">Блок 6. Доказательства</span>
-          <h3 className="text-3xl md:text-4xl font-heading font-bold mb-6">Не слова. Факты.</h3>
-          <div className="flex items-center gap-3 mb-8">
-            <span className="font-mono text-sm bg-black text-white px-2 py-1 rounded">02.02.2026</span>
-          </div>
-          <p className="mb-6 font-medium">
-            Этот сайт полностью создан с помощью нейросетей.
-          </p>
-          <p className="mb-4 text-text-secondary">Дальше:</p>
-          <ul className="space-y-2 mb-8 text-lg font-medium">
-            <li className="flex items-center gap-2 text-brand-accent"><ArrowRight size={18} /> ещё 3 сайта</li>
-            <li className="flex items-center gap-2 text-brand-accent"><ArrowRight size={18} /> 3 чат-бота</li>
-            <li className="flex items-center gap-2 text-brand-accent"><ArrowRight size={18} /> 3 автоматизации</li>
-          </ul>
-          <div className="p-6 bg-brand-secondary/5 border border-brand-secondary/10 rounded-2xl">
-            <p className="mb-2">Не «когда-нибудь».</p>
-            <p className="mb-4">А чтобы было что показать.</p>
-            <p className="font-bold">Экспертность без артефактов — это шум. Навык должен быть виден.</p>
-          </div>
-        </ScrollParagraph>
-
-        {/* Block 7 */}
-        <ScrollParagraph>
-          <span className="text-sm font-bold tracking-widest uppercase text-brand-accent mb-2 block">Блок 7. Мотивация</span>
-          <h3 className="text-3xl md:text-4xl font-heading font-bold mb-6">Зачем мне это</h3>
-          <p className="text-4xl md:text-5xl font-bold text-gray-200 mb-8">
-            Я устал.
-          </p>
-          <p className="mb-6">
-            Устал видеть, как людям продают:
-          </p>
-          <ul className="list-disc list-inside space-y-2 text-text-secondary mb-8 pl-2">
-            <li>сотни промтов за деньги</li>
-            <li>PDF с «секретами ИИ»</li>
-            <li>иллюзию понимания</li>
-          </ul>
-          <p className="mb-6">
-            Особенно новичкам.
-            Для них эти списки —
-            <span className="block mt-2 font-serif italic text-2xl text-gray-400">как квантовая физика на китайском.</span>
-          </p>
-        </ScrollParagraph>
-
-        {/* Block 8 */}
-        <ScrollParagraph>
-          <span className="text-sm font-bold tracking-widest uppercase text-brand-accent mb-2 block">Блок 8. Ошибка</span>
-          <h3 className="text-3xl md:text-4xl font-heading font-bold mb-6">Которую я прошёл сам</h3>
-          <p className="mb-6 text-text-secondary">
-            Раньше я тоже думал:
-            нейросети «и так всё понимают».
-          </p>
-          <p className="mb-6">
-            Что нужно просто дать ей команду.
-          </p>
-          <p className="text-xl font-bold text-red-500 mb-8">
-            Это не так.
-          </p>
-          <div className="space-y-4 text-text-secondary mb-8">
-            <p>Нейросеть:</p>
-            <ul className="space-y-2 border-l-2 border-red-200 pl-4">
-              <li>— не слышит тебя так, как ты думаешь</li>
-              <li>— не понимает контекст автоматически</li>
-              <li>— не читает твои мысли</li>
-            </ul>
-          </div>
-          <p className="font-medium">
-            Без понимания ты всегда упрёшься в потолок.
-          </p>
-        </ScrollParagraph>
-
-        {/* Block 9 */}
-        <ScrollParagraph>
-          <span className="text-sm font-bold tracking-widest uppercase text-brand-accent mb-2 block">Блок 9. Что я даю</span>
-          <h3 className="text-3xl md:text-4xl font-heading font-bold mb-6">И почему бесплатно</h3>
-          <p className="mb-6">
-            Здесь я дам тебе бесплатные уроки.
-          </p>
-          <p className="mb-8 font-medium">
-            Не про промты.<br />
-            А про <span className="text-brand-accent">понимание</span> нейросетей.
-          </p>
-          <ul className="space-y-4 text-text-secondary mb-8">
-            <li className="flex gap-3">
-              <div className="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center flex-shrink-0">✓</div>
-              как ИИ интерпретирует смысл
-            </li>
-            <li className="flex gap-3">
-              <div className="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center flex-shrink-0">✓</div>
-              почему одинаковые запросы дают разный результат
-            </li>
-            <li className="flex gap-3">
-              <div className="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center flex-shrink-0">✓</div>
-              как говорить с нейросетью, чтобы она работала на тебя
-            </li>
-          </ul>
-          <p className="text-xl font-heading font-medium">
-            Понимание сильнее любых хаков.
-          </p>
-        </ScrollParagraph>
-
-        {/* Block 10 */}
-        <ScrollParagraph>
-          <span className="text-sm font-bold tracking-widest uppercase text-brand-accent mb-2 block">Блок 10. Результат</span>
-          <h3 className="text-3xl md:text-4xl font-heading font-bold mb-6">Что ты получишь</h3>
-
-          <div className="grid md:grid-cols-2 gap-6 mb-8">
-            <div className="p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
-              <h4 className="font-bold mb-4 text-gray-500">Минимум:</h4>
-              <ul className="space-y-2 text-sm md:text-base">
-                <li>— ускорение рутинных задач</li>
-                <li>— быстрый поиск и анализ</li>
-                <li>— меньше хаоса</li>
-                <li>— больше контроля</li>
-              </ul>
+          <div className="space-y-3">
+            <div className="p-3 bg-green-50 rounded-lg flex gap-3 items-center">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+              <span className="text-sm font-medium text-green-900">Как ИИ интерпретирует смысл</span>
             </div>
-            <div className="p-6 bg-brand text-white rounded-2xl shadow-lg shadow-brand/20">
-              <h4 className="font-bold mb-4 text-white/80">Максимум:</h4>
-              <p className="text-lg leading-relaxed">
-                ты начнёшь думать вместе с нейросетью,
-                а не просто пользоваться ей.
-              </p>
+            <div className="p-3 bg-green-50 rounded-lg flex gap-3 items-center">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+              <span className="text-sm font-medium text-green-900">Как говорить с нейросетью</span>
             </div>
           </div>
-        </ScrollParagraph>
+        </TimelineItem>
 
-        {/* Final CTA */}
-        <ScrollParagraph className="text-center mt-32">
-          <div id="story-cta" className="scroll-mt-32">
-            <h3 className="text-3xl md:text-5xl font-heading font-medium mb-8">
-              Я не обещаю лёгкий путь.<br />
-              <span className="text-brand-accent">Но обещаю честный.</span>
-            </h3>
-            <p className="text-xl text-text-secondary mb-12 max-w-2xl mx-auto">
-              Если тебе близок принцип
-              «сначала понять — потом масштабировать» —
-              ты по адресу.
-            </p>
-
-          </div>
-          <div className="flex flex-col md:flex-row gap-4 justify-center items-center">
-            <button className="px-8 py-4 rounded-full bg-brand text-white font-medium text-lg hover:bg-brand-accent transition-all shadow-lg hover:shadow-brand-accent/25 active:scale-95 w-full md:w-auto">
-              Начать с бесплатных уроков
-            </button>
-            <button className="px-8 py-4 rounded-full bg-white border border-gray-200 text-text-primary font-medium text-lg hover:bg-gray-50 transition-all active:scale-95 w-full md:w-auto flex items-center justify-center gap-2">
-              Посмотреть проекты
-              <ArrowRight size={20} />
-            </button>
-          </div>
-        </ScrollParagraph>
+        {/* End of Line */}
+        <div className="absolute left-6 md:left-1/2 bottom-0 w-4 h-4 bg-brand rounded-full transform -translate-x-1/2 z-20" />
 
       </div>
+
+      {/* FINAL CTA */}
+      <div id="story-cta" className="relative z-10 max-w-4xl mx-auto px-4 mt-20 md:mt-32 text-center scroll-mt-32">
+        <h3 className="text-4xl md:text-6xl font-heading font-medium mb-8 leading-tight">
+          Я не обещаю лёгкий путь. <br />
+          <span className="text-brand-accent">Но обещаю честный.</span>
+        </h3>
+        <p className="text-lg md:text-xl text-text-secondary mb-12 max-w-2xl mx-auto">
+          Если тебе близок принцип «сначала понять — потом масштабировать», ты по адресу.
+        </p>
+
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <button className="px-8 py-4 rounded-full bg-brand text-white font-medium text-lg hover:bg-brand-accent transition-all shadow-lg hover:shadow-brand-accent/25 active:scale-95">
+            Начать с бесплатных уроков
+          </button>
+          <button className="px-8 py-4 rounded-full bg-white border border-gray-200 text-text-primary font-medium text-lg hover:bg-gray-50 transition-all active:scale-95 flex items-center justify-center gap-2">
+            Посмотреть проекты
+            <ArrowRight size={20} />
+          </button>
+        </div>
+      </div>
+
     </section>
   );
 };
